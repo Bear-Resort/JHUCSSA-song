@@ -697,8 +697,26 @@
             saveCurrentSongIndex(index);
         }
 
+        async function safePlay() {
+            try {
+                await audioPlayer.play();
+                playPauseBtn.textContent = '⏸';
+                playPauseBtn.title = '暂停';
+                playPauseBtn.setAttribute('aria-label', '暂停');
+                isPlaying = true;
+                return true;
+            } catch (error) {
+                console.warn('Audio playback failed:', error);
+                playPauseBtn.textContent = '▶';
+                playPauseBtn.title = '播放';
+                playPauseBtn.setAttribute('aria-label', '播放');
+                isPlaying = false;
+                return false;
+            }
+        }
+
         // 播放/暂停
-        playPauseBtn.addEventListener('click', () => {
+        playPauseBtn.addEventListener('click', async () => {
             if (isPlaying) {
                 audioPlayer.pause();
                 playPauseBtn.textContent = '▶';
@@ -706,11 +724,7 @@
                 playPauseBtn.setAttribute('aria-label', '播放');
                 isPlaying = false;
             } else {
-                audioPlayer.play();
-                playPauseBtn.textContent = '⏸';
-                playPauseBtn.title = '暂停';
-                playPauseBtn.setAttribute('aria-label', '暂停');
-                isPlaying = true;
+                await safePlay();
             }
         });
 
@@ -727,7 +741,7 @@
             currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
             loadSong(currentIndex);
             if (isPlaying && playlist[currentIndex]?.filePath) {
-                audioPlayer.play();
+                void safePlay();
             }
         });
 
@@ -737,7 +751,7 @@
             currentIndex = (currentIndex + 1) % playlist.length;
             loadSong(currentIndex);
             if (isPlaying) {
-                audioPlayer.play();
+                void safePlay();
             }
         });
 
